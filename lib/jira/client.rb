@@ -82,7 +82,9 @@ module JIRA
       :http_debug,
       :issuer,
       :base_url,
-      :shared_secret
+      :shared_secret,
+      :cert_path,
+      :key_path
     ].freeze
 
     DEFAULT_OPTIONS = {
