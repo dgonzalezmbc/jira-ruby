@@ -34,7 +34,9 @@ module JIRA
   #   :use_client_cert    => false,
   #   :read_timeout       => nil,
   #   :http_debug         => false,
-  #   :shared_secret      => nil
+  #   :shared_secret      => nil,
+  #   :cert_path          => nil,
+  #   :key_path           => nil
   #
   # See the JIRA::Base class methods for all of the available methods on these accessor
   # objects.
