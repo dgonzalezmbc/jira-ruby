@@ -8,35 +8,38 @@ module JIRA
   # The client must be initialized with an options hash containing
   # configuration options.  The available options are:
   #
-  #   :site               => 'http://localhost:2990',
-  #   :context_path       => '/jira',
-  #   :signature_method   => 'RSA-SHA1',
-  #   :request_token_path => "/plugins/servlet/oauth/request-token",
-  #   :authorize_path     => "/plugins/servlet/oauth/authorize",
-  #   :access_token_path  => "/plugins/servlet/oauth/access-token",
-  #   :private_key        => nil,
-  #   :private_key_file   => "rsakey.pem",
-  #   :rest_base_path     => "/rest/api/2",
-  #   :consumer_key       => nil,
-  #   :consumer_secret    => nil,
-  #   :ssl_verify_mode    => OpenSSL::SSL::VERIFY_PEER,
-  #   :ssl_version        => nil,
-  #   :use_ssl            => true,
-  #   :username           => nil,
-  #   :password           => nil,
-  #   :auth_type          => :oauth,
-  #   :proxy_address      => nil,
-  #   :proxy_port         => nil,
-  #   :proxy_username     => nil,
-  #   :proxy_password     => nil,
-  #   :additional_cookies => nil,
-  #   :default_headers    => {},
-  #   :use_client_cert    => false,
-  #   :read_timeout       => nil,
-  #   :http_debug         => false,
-  #   :shared_secret      => nil,
-  #   :cert_path          => nil,
-  #   :key_path           => nil
+  #   :site                 => 'http://localhost:2990',
+  #   :context_path         => '/jira',
+  #   :signature_method     => 'RSA-SHA1',
+  #   :request_token_path   => "/plugins/servlet/oauth/request-token",
+  #   :authorize_path       => "/plugins/servlet/oauth/authorize",
+  #   :access_token_path    => "/plugins/servlet/oauth/access-token",
+  #   :private_key          => nil,
+  #   :private_key_file     => "rsakey.pem",
+  #   :rest_base_path       => "/rest/api/2",
+  #   :consumer_key         => nil,
+  #   :consumer_secret      => nil,
+  #   :ssl_verify_mode      => OpenSSL::SSL::VERIFY_PEER,
+  #   :ssl_version          => nil,
+  #   :use_ssl              => true,
+  #   :username             => nil,
+  #   :password             => nil,
+  #   :auth_type            => :oauth,
+  #   :proxy_address        => nil,
+  #   :proxy_port           => nil,
+  #   :proxy_username       => nil,
+  #   :proxy_password       => nil,
+  #   :additional_cookies   => nil,
+  #   :default_headers      => {},
+  #   :use_client_cert      => false,
+  #   :use_client_cert_file => false,
+  #   :read_timeout         => nil,
+  #   :http_debug           => false,
+  #   :shared_secret        => nil,
+  #   :cert_path            => nil,
+  #   :key_path             => nil,
+  #   :ssl_client_cert      => nil,
+  #   :ssl_client_key       => nil
   #
   # See the JIRA::Base class methods for all of the available methods on these accessor
   # objects.
@@ -80,13 +83,16 @@ module JIRA
       :additional_cookies,
       :default_headers,
       :use_client_cert,
+      :use_client_cert_file,
       :read_timeout,
       :http_debug,
       :issuer,
       :base_url,
       :shared_secret,
       :cert_path,
-      :key_path
+      :key_path,
+      :ssl_client_cert,
+      :ssl_client_key
     ].freeze
 
     DEFAULT_OPTIONS = {
@@ -96,6 +102,7 @@ module JIRA
       ssl_verify_mode: OpenSSL::SSL::VERIFY_PEER,
       use_ssl: true,
       use_client_cert: false,
+      use_client_cert_file: false,
       auth_type: :oauth,
       http_debug: false,
       default_headers: {}
@@ -109,11 +116,14 @@ module JIRA
       unknown_options = options.keys.reject { |o| DEFINED_OPTIONS.include?(o) }
       raise ArgumentError, "Unknown option(s) given: #{unknown_options}" unless unknown_options.empty?
 
-      if options[:use_client_cert]
-        raise ArgumentError, 'Options: :cert_path must be set when :use_client_cert is true' unless @options[:cert_path]
-        raise ArgumentError, 'Options: :key_path must be set when :use_client_cert is true' unless @options[:key_path]
-        @options[:cert] = OpenSSL::X509::Certificate.new(File.read(@options[:cert_path]))
-        @options[:key] = OpenSSL::PKey::RSA.new(File.read(@options[:key_path]))
+      if options[:use_client_cert_file]
+        raise ArgumentError, 'Options: :cert_path must be set when :use_client_cert_file is true' unless @options[:cert_path]
+        raise ArgumentError, 'Options: :key_path must be set when :use_client_cert_file is true' unless @options[:key_path]
+        @options[:ssl_client_cert] = OpenSSL::X509::Certificate.new(File.read(@options[:cert_path]))
+        @options[:ssl_client_key] = OpenSSL::PKey::RSA.new(File.read(@options[:key_path]))
+      elsif options[:use_client_cert]
+        raise ArgumentError, 'Options: :ssl_client_cert must be set when :use_client_cert is true' unless @options[:ssl_client_cert]
+        raise ArgumentError, 'Options: :ssl_client_key must be set when :use_client_cert is true' unless @options[:ssl_client_key]
       end
 
       case options[:auth_type]
